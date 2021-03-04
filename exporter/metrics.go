@@ -510,9 +510,9 @@ func (e *Exporter) processLogicalSwitchStateMetrics(host string, data *Nsxv3Logi
 
 func (e *Exporter) processIPPoolList(host string, data *Nsxv3IPPoolItem, ch chan<- prometheus.Metric) error {
 
-	var percentFree float64 = 100
+	var percentFree float64 = 0
 
-	if data.totalIds == 0 {
+	if data.totalIds == 0 || data.totalIds == data.freeIds {
 		percentFree = 0
 	} else {
 		percentFree = 1*100 - (data.freeIds / data.totalIds)
