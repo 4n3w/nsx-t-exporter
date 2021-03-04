@@ -187,7 +187,7 @@ func GetMetricsDescription() map[string]*prometheus.Desc {
 	)
 
 	APIMetrics["IPPoolFreePercentage"] = prometheus.NewDesc(
-		prometheus.BuildFQName("nsxv3", "ippool", "list"),
+		prometheus.BuildFQName("nsxv3", "ip_pool", "percentage_free"),
 		"NSX-T IP Pools Percentage Free, 0 = no ips available, 100 = no ips allocated",
 		[]string{"nsxv3_manager_hostname", "name", "id", "free", "total"}, nil,
 	)
@@ -512,8 +512,10 @@ func (e *Exporter) processIPPoolList(host string, data *Nsxv3IPPoolItem, ch chan
 
 	var percentFree float64 = 0
 
-	if data.totalIds == 0 || data.totalIds == data.freeIds {
+	if data.totalIds == 0 {
 		percentFree = 0
+	} else if data.totalIds == data.freeIds {
+		percentFree = 100
 	} else {
 		percentFree = 1*100 - (data.freeIds / data.totalIds)
 	}
