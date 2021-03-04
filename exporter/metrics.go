@@ -525,8 +525,8 @@ func (e *Exporter) processIPPoolList(host string, data *Nsxv3IPPoolItem, ch chan
 		prometheus.GaugeValue,
 		percentFree,
 		host,
-		data.id,
 		data.name,
+		data.id,
 		strconv.FormatFloat(data.freeIds, 'f', 0, 64),
 		strconv.FormatFloat(data.totalIds, 'f', 0, 64))
 
