@@ -514,8 +514,8 @@ func (e *Exporter) processIPPoolList(host string, data *Nsxv3IPPoolItem, ch chan
 
 	if data.totalIds == 0 {
 		percentFree = 0
-	} else if data.totalIds == data.freeIds {
-		percentFree = 100
+	} else if data.freeIds == 0 {
+		percentFree = 0
 	} else {
 		percentFree = 1*100 - (data.freeIds / data.totalIds)
 	}
