@@ -238,6 +238,33 @@ func transportNodesStateHandler(data *Nsxv3Data, status *Nsxv3Resource) (string,
 	return noCursor, nil
 }
 
+func ipPoolHandler(data *Nsxv3Data, status *Nsxv3Resource) (string, error) {
+	ippools := status.state["results"].([]interface{})
+
+	next := noCursor
+	cursor := status.state["cursor"]
+
+	if cursor != nil {
+		next = cursor.(string)
+	}
+
+	for _, ippool := range ippools {
+		ippoolProperties := ippool.(map[string]interface{})
+
+		ippoolData := new(Nsxv3IPPoolItem)
+		ippoolData.id = ippoolProperties["id"].(string)
+		ippoolData.name = ippoolProperties["display_name"].(string)
+
+		poolUsage := ippoolProperties["pool_usage"].(map[string]interface{})
+		ippoolData.totalIds = float64(poolUsage["total_ids"].(float64))
+		ippoolData.freeIds = float64(poolUsage["free_ids"].(float64))
+
+		data.IPPools = append(data.IPPools, *ippoolData)
+	}
+
+	return next, nil
+}
+
 func logicalSwitchAdminStateHander(data *Nsxv3Data, status *Nsxv3Resource) (string, error) {
 	lswitches := status.state["results"].([]interface{})
 
@@ -356,6 +383,14 @@ func getEndpointStatus(endpointStatusType Nsxv3ResourceKind, endpointHost string
 				URL:    &url.URL{Host: endpointHost, Path: "/api/v1/node/services/datastore/status"},
 			},
 		}
+	case IPPool:
+		return Nsxv3Resource{
+			kind: IPPool,
+			request: &http.Request{
+				Method: "GET",
+				URL:    &url.URL{Host: endpointHost, Path: "/api/v1/pools/ip-pools"},
+			},
+		}
 	case LogicalSwitch:
 		return Nsxv3Resource{
 			kind: LogicalSwitch,
@@ -434,6 +469,8 @@ func handle(data *Nsxv3Data, status *Nsxv3Resource) (string, error) {
 		return managerNodeFirewallHandler(data, status)
 	case ManagerNodeFirewallSections:
 		return managerNodeFirewallSectionsHandler(data, status)
+	case IPPool:
+		return ipPoolHandler(data, status)
 	case LogicalSwitch:
 		return logicalSwitchAdminStateHander(data, status)
 	case LogicalSwitchAdmin:
@@ -510,6 +547,7 @@ func (e *Exporter) gather(data *Nsxv3Data) error {
 			getEndpointStatus(ManagementClusterDatabase, ""),
 			getEndpointStatus(LogicalSwitchAdmin, ""),
 			getEndpointStatus(LogicalSwitch, ""),
+			getEndpointStatus(IPPool, ""),
 			getEndpointStatus(TransportNode, ""),
 			getEndpointStatus(TransportNodes, ""),
 			getEndpointStatus(LogicalPort, ""),

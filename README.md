@@ -21,7 +21,7 @@ NSX-T Expoerter takes input from environment variables as:
 ## Build
 
 ```sh
-git clone https://github.com/sapcc/github.com/sapcc/nsx-t-exporter.git
+git clone https://github.com/4n3w/nsx-t-exporter.git
 cd nsx-t-exporter
 docker build -t <image-name> .
 ```

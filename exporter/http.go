@@ -14,7 +14,7 @@ import (
 
 	"golang.org/x/time/rate"
 
-	nsxv3config "github.com/sapcc/nsx-t-exporter/config"
+	nsxv3config "github.com/4n3w/nsx-t-exporter/config"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -48,6 +48,8 @@ const (
 	LogicalSwitch               Nsxv3ResourceKind = "LogicalSwitch"
 	LogicalPort                 Nsxv3ResourceKind = "LogicalPort"
 	ActivityFrameworkStatistics Nsxv3ResourceKind = "ActivityFrameworkStatistics"
+	LoadBalancer                Nsxv3ResourceKind = "LoadBalancer"
+	IPPool                      Nsxv3ResourceKind = "IPPool"
 )
 
 // Nsxv3Resource represents endpoint status snapshot

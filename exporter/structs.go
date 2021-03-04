@@ -1,8 +1,8 @@
 package exporter
 
 import (
+	"github.com/4n3w/nsx-t-exporter/config"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/sapcc/nsx-t-exporter/config"
 )
 
 // Exporter is used to store Metrics data and embeds the config struct.
@@ -20,6 +20,25 @@ type Nsxv3LogicalSwitchAdminStateData struct {
 	adminStateMetric float64
 	name             string
 	id               string
+}
+
+// Nsxv3IPPoolItem represents the current set of ip pools
+type Nsxv3IPPoolItem struct {
+	name         string
+	id           string
+	displayName  string
+	isSystem     bool
+	totalIds     float64
+	allocatedIds float64
+	freeIds      float64
+
+	subnets []Nsxv3Subnet
+}
+
+type Nsxv3Subnet struct {
+	cidr string
+	//allocationRanges TODO add allocationRanges
+	//allocationRanges []Nsxv3AllocationRange
 }
 
 // Nsxv3LogicalPortOperationalStateData represent the current snapshot of metrics
@@ -108,6 +127,7 @@ type Nsxv3Data struct {
 	TransportNodesState          Nsxv3TransportNodesStateData
 	LogicalSwitchesAdminStates   []Nsxv3LogicalSwitchAdminStateData
 	LogicalSwitchesStates        []Nsxv3LogicalSwitchStateData
+	IPPools                      []Nsxv3IPPoolItem
 	ExtractedActualValues        bool
 	LastSuccessfulDataFetch      float64
 	LogicalPortOperationalStates []Nsxv3LogicalPortOperationalStateData

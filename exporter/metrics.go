@@ -1,6 +1,8 @@
 package exporter
 
 import (
+	"strconv"
+
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 )
@@ -184,6 +186,12 @@ func GetMetricsDescription() map[string]*prometheus.Desc {
 		[]string{"nsxv3_manager_hostname", "name", "id"}, nil,
 	)
 
+	APIMetrics["IPPoolFreePercentage"] = prometheus.NewDesc(
+		prometheus.BuildFQName("nsxv3", "ippool", "list"),
+		"NSX-T IP Pools Percentage Free, 0 = no ips available, 100 = no ips allocated",
+		[]string{"nsxv3_manager_hostname", "name", "id", "free", "total"}, nil,
+	)
+
 	APIMetrics["LogicalPortOperationalState"] = prometheus.NewDesc(
 		prometheus.BuildFQName("nsxv3", "logical_port", "operational_state"),
 		"NSX-T logical port operational state - UP=1, DOWN=0, UNKNOWN=-1",
@@ -331,6 +339,10 @@ func (e *Exporter) processMetrics(data *Nsxv3Data, ch chan<- prometheus.Metric) 
 
 	for _, element := range data.LogicalSwitchesStates {
 		e.processLogicalSwitchStateMetrics(data.ClusterHost, &element, ch)
+	}
+
+	for _, element := range data.IPPools {
+		e.processIPPoolList(data.ClusterHost, &element, ch)
 	}
 
 	for _, element := range data.LogicalPortOperationalStates {
@@ -492,6 +504,29 @@ func (e *Exporter) processLogicalSwitchStateMetrics(host string, data *Nsxv3Logi
 		prometheus.GaugeValue,
 		data.stateMetric,
 		host, data.id)
+
+	return nil
+}
+
+func (e *Exporter) processIPPoolList(host string, data *Nsxv3IPPoolItem, ch chan<- prometheus.Metric) error {
+
+	var percentFree float64 = 100
+
+	if data.totalIds == 0 {
+		percentFree = 0
+	} else {
+		percentFree = 1*100 - (data.freeIds / data.totalIds)
+	}
+
+	ch <- prometheus.MustNewConstMetric(
+		e.APIMetrics["IPPoolFreePercentage"],
+		prometheus.GaugeValue,
+		percentFree,
+		host,
+		data.id,
+		data.name,
+		strconv.FormatFloat(data.freeIds, 'f', 0, 64),
+		strconv.FormatFloat(data.totalIds, 'f', 0, 64))
 
 	return nil
 }
