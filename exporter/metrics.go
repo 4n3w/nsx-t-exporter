@@ -517,7 +517,7 @@ func (e *Exporter) processIPPoolList(host string, data *Nsxv3IPPoolItem, ch chan
 	} else if data.freeIds == 0 {
 		percentFree = 0
 	} else {
-		percentFree = 1*100 - (data.freeIds / data.totalIds)
+		percentFree = 1 * 100 * (data.freeIds / data.totalIds)
 	}
 
 	ch <- prometheus.MustNewConstMetric(
