@@ -198,6 +198,24 @@ func GetMetricsDescription() map[string]*prometheus.Desc {
 		[]string{"nsxv3_manager_hostname", "enabled", "name", "id", "size"}, nil,
 	)
 
+	APIMetrics["LoadBalancerSummarySmall"] = prometheus.NewDesc(
+		prometheus.BuildFQName("nsxv3", "load_balancer", "count_small"),
+		"NSX-T number of SMALL load balancers",
+		[]string{"nsxv3_manager_hostname"}, nil,
+	)
+
+	APIMetrics["LoadBalancerSummaryMedium"] = prometheus.NewDesc(
+		prometheus.BuildFQName("nsxv3", "load_balancer", "count_medium"),
+		"NSX-T number of MEDIUM load balancers",
+		[]string{"nsxv3_manager_hostname"}, nil,
+	)
+
+	APIMetrics["LoadBalancerSummaryLarge"] = prometheus.NewDesc(
+		prometheus.BuildFQName("nsxv3", "load_balancer", "count_large"),
+		"NSX-T number of LARGE load balancers",
+		[]string{"nsxv3_manager_hostname"}, nil,
+	)
+
 	APIMetrics["LogicalPortOperationalState"] = prometheus.NewDesc(
 		prometheus.BuildFQName("nsxv3", "logical_port", "operational_state"),
 		"NSX-T logical port operational state - UP=1, DOWN=0, UNKNOWN=-1",
@@ -249,6 +267,10 @@ func (e *Exporter) processMetrics(data *Nsxv3Data, ch chan<- prometheus.Metric) 
 		log.Warn("Metrics processing completed with error, will not report any metrics.")
 		return nil
 	}
+
+	small := Nsxv3LoadBalancerSummary{size: "SMALL", count: 0}
+	medium := Nsxv3LoadBalancerSummary{size: "MEDIUM", count: 0}
+	large := Nsxv3LoadBalancerSummary{size: "LARGE", count: 0}
 
 	// Prometheus scrape metric callback (concurrent)
 	ch <- prometheus.MustNewConstMetric(
@@ -352,8 +374,22 @@ func (e *Exporter) processMetrics(data *Nsxv3Data, ch chan<- prometheus.Metric) 
 	}
 
 	for _, element := range data.LoadBalancers {
+
 		e.processLoadBalancers(data.ClusterHost, &element, ch)
+
+		/* TODO: there's got to be a better way to do this, but for now.. */
+		if element.size == "SMALL" {
+			small.count += 1
+		} else if element.size == "MEDIUM" {
+			medium.count += 1
+		} else if element.size == "LARGE" {
+			large.count += 1
+		}
 	}
+
+	e.processLoadBalancerSmallSummaries(data.ClusterHost, &small, ch)
+	e.processLoadBalancerMediumSummaries(data.ClusterHost, &medium, ch)
+	e.processLoadBalancerLargeSummaries(data.ClusterHost, &large, ch)
 
 	for _, element := range data.LogicalPortOperationalStates {
 		e.processLogicalPortOperationalStateMetrics(data.ClusterHost, &element, ch)
@@ -554,6 +590,37 @@ func (e *Exporter) processLoadBalancers(host string, data *Nsxv3LoadBalancer, ch
 		data.name,
 		data.id,
 		data.size)
+
+	return nil
+}
+
+func (e *Exporter) processLoadBalancerSmallSummaries(host string, data *Nsxv3LoadBalancerSummary, ch chan<- prometheus.Metric) error {
+
+	ch <- prometheus.MustNewConstMetric(
+		e.APIMetrics["LoadBalancerSummarySmall"],
+		prometheus.GaugeValue,
+		float64(data.count),
+		host)
+
+	return nil
+}
+
+func (e *Exporter) processLoadBalancerMediumSummaries(host string, data *Nsxv3LoadBalancerSummary, ch chan<- prometheus.Metric) error {
+	ch <- prometheus.MustNewConstMetric(
+		e.APIMetrics["LoadBalancerSummaryMedium"],
+		prometheus.GaugeValue,
+		float64(data.count),
+		host)
+
+	return nil
+}
+
+func (e *Exporter) processLoadBalancerLargeSummaries(host string, data *Nsxv3LoadBalancerSummary, ch chan<- prometheus.Metric) error {
+	ch <- prometheus.MustNewConstMetric(
+		e.APIMetrics["LoadBalancerSummaryLarge"],
+		prometheus.GaugeValue,
+		float64(data.count),
+		host)
 
 	return nil
 }

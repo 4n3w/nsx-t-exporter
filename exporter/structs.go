@@ -41,6 +41,11 @@ type Nsxv3Subnet struct {
 	//allocationRanges []Nsxv3AllocationRange
 }
 
+type Nsxv3LoadBalancerSummary struct {
+	size  string
+	count int
+}
+
 // Nsxv3LoadBalancer
 type Nsxv3LoadBalancer struct {
 	name    string
