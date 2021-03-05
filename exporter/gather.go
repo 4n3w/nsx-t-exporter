@@ -284,17 +284,16 @@ func loadBalancerHandler(data *Nsxv3Data, status *Nsxv3Resource) (string, error)
 		loadBalancerData.enabled = loadBalancerProperties["enabled"].(bool)
 		loadBalancerData.size = loadBalancerProperties["size"].(string)
 
-		/*	virtualServerCount := 0
+		virtualServerCount := 0
 
+		if _, ok := loadBalancerProperties["virtual_server_ids"]; ok {
 			virtualServers := loadBalancerProperties["virtual_server_ids"].([]interface{})
-			for _, virtualServer := range virtualServers {
-				log.Debug("%v:", virtualServer)
+			for range virtualServers {
 				virtualServerCount += 1
 			}
-			loadBalancerData.count = virtualServerCount
-		*/
+		}
 
-		loadBalancerData.count = 1
+		loadBalancerData.count = virtualServerCount
 
 		data.LoadBalancers = append(data.LoadBalancers, *loadBalancerData)
 	}
