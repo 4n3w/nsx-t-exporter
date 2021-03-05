@@ -41,6 +41,15 @@ type Nsxv3Subnet struct {
 	//allocationRanges []Nsxv3AllocationRange
 }
 
+// Nsxv3LoadBalancer
+type Nsxv3LoadBalancer struct {
+	name    string
+	id      string
+	size    string
+	enabled bool
+	count   int
+}
+
 // Nsxv3LogicalPortOperationalStateData represent the current snapshot of metrics
 // for a logical port operational state
 type Nsxv3LogicalPortOperationalStateData struct {
@@ -128,6 +137,7 @@ type Nsxv3Data struct {
 	LogicalSwitchesAdminStates   []Nsxv3LogicalSwitchAdminStateData
 	LogicalSwitchesStates        []Nsxv3LogicalSwitchStateData
 	IPPools                      []Nsxv3IPPoolItem
+	LoadBalancers                []Nsxv3LoadBalancer
 	ExtractedActualValues        bool
 	LastSuccessfulDataFetch      float64
 	LogicalPortOperationalStates []Nsxv3LogicalPortOperationalStateData

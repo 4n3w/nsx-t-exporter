@@ -192,6 +192,12 @@ func GetMetricsDescription() map[string]*prometheus.Desc {
 		[]string{"nsxv3_manager_hostname", "name", "id", "free", "total"}, nil,
 	)
 
+	APIMetrics["LoadBalancers"] = prometheus.NewDesc(
+		prometheus.BuildFQName("nsxv3", "load_balancer", "virtual_server_count"),
+		"NSX-T Load Balancers and their virtual servers",
+		[]string{"nsxv3_manager_hostname", "enabled", "name", "id", "size"}, nil,
+	)
+
 	APIMetrics["LogicalPortOperationalState"] = prometheus.NewDesc(
 		prometheus.BuildFQName("nsxv3", "logical_port", "operational_state"),
 		"NSX-T logical port operational state - UP=1, DOWN=0, UNKNOWN=-1",
@@ -343,6 +349,10 @@ func (e *Exporter) processMetrics(data *Nsxv3Data, ch chan<- prometheus.Metric) 
 
 	for _, element := range data.IPPools {
 		e.processIPPoolList(data.ClusterHost, &element, ch)
+	}
+
+	for _, element := range data.LoadBalancers {
+		e.processLoadBalancers(data.ClusterHost, &element, ch)
 	}
 
 	for _, element := range data.LogicalPortOperationalStates {
@@ -529,6 +539,21 @@ func (e *Exporter) processIPPoolList(host string, data *Nsxv3IPPoolItem, ch chan
 		data.id,
 		strconv.FormatFloat(data.freeIds, 'f', 0, 64),
 		strconv.FormatFloat(data.totalIds, 'f', 0, 64))
+
+	return nil
+}
+
+func (e *Exporter) processLoadBalancers(host string, data *Nsxv3LoadBalancer, ch chan<- prometheus.Metric) error {
+
+	ch <- prometheus.MustNewConstMetric(
+		e.APIMetrics["LoadBalancers"],
+		prometheus.GaugeValue,
+		float64(data.count),
+		host,
+		strconv.FormatBool(data.enabled),
+		data.name,
+		data.id,
+		data.size)
 
 	return nil
 }
